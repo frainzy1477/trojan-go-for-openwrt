@@ -82,7 +82,7 @@ jobs:
           draft: true
           name: ${{ env.TAG_NAME }}
           tag_name: ${{ env.TAG_NAME }}
-          files: ../../../../../../../base/*.ipk
+          files: ../../sdk/bin/packages/../base/*.ipk
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
