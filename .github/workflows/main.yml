@@ -75,15 +75,20 @@ jobs:
         cd ~/sdk
         make defconfig
         make package/trojan-go/compile -j$(nproc) V=s
-        
-    - name: Release
-      uses: softprops/action-gh-release@v1
+    - name: Upload - push to artifact file
+      uses: actions/upload-artifact@v1
       with:
-          draft: true
-          name: ${{ env.TAG_NAME }}
-          tag_name: ${{ env.TAG_NAME }}
-          files: ../../sdk/bin/packages/../base/*
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: ${{ format('{0}.{1}.{2}', github.workflow, github.actor, github.event_name) }}
+        path: ../../../sdk/bin/packages
+        
+    #- name: Release
+    #  uses: softprops/action-gh-release@v1
+    #  with:
+    #      draft: true
+    #      name: ${{ env.TAG_NAME }}
+    #      tag_name: ${{ env.TAG_NAME }}
+    #      files: ../../sdk/bin/packages/../base/*
+    #  env:
+    #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
  
