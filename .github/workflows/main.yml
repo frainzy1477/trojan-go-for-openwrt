@@ -7,7 +7,7 @@ name: trojan-go
 jobs:
   build:
     runs-on: ubuntu-20.04
-    name: Trojan-GO
+    name: trojan-go Package  
     strategy:
       fail-fast: false
       matrix:
@@ -37,58 +37,69 @@ jobs:
         - https://downloads.openwrt.org/releases/21.02.0-rc1/targets/x86/64/openwrt-sdk-21.02.0-rc1-x86-64_gcc-8.4.0_musl.Linux-x86_64.tar.xz
         - https://downloads.openwrt.org/releases/21.02.0-rc1/targets/rockchip/armv8/openwrt-sdk-21.02.0-rc1-rockchip-armv8_gcc-8.4.0_musl.Linux-x86_64.tar.xz
     steps:
-    - name: TAG
-      run: |
-          tag_name="${GITHUB_REF##*/}"
-          echo Tag $tag_name
-          echo "TAG_NAME=${tag_name}" >> $GITHUB_ENV
     
-    - uses: actions/checkout@master
+    - name: Checkout - ${{ github.ref }}
+      uses: actions/checkout@v1
+      
     - name: Install env dependencies
       run: |
         sudo -E apt-get -qq update
         sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion git-core gcc-multilib libelf-dev autoconf automake libtool libev-dev libc-ares-dev libudns-dev libncurses-dev
         sudo -E apt-get -qq autoremove --purge
         sudo -E apt-get -qq clean 
-        
-    - name: Download Openwrt SDK
+    
+    - name: TAG
+      run: |
+          tag_name="${GITHUB_REF##*/}"
+          echo Tag $tag_name
+          echo "TAG_NAME=${tag_name}" >> $GITHUB_ENV
+          
+    - name: Download SDK
       env:
         SDK_URL: ${{ matrix.SDK_URL }}
       run: |
-        SDK_HOME=$(head -c -8 <<< $(basename $SDK_URL))
-        wget $SDK_URL
-        tar xf $(basename $SDK_URL) -C ~/
-        mv ~/$SDK_HOME ~/sdk
+        wget -q "${SDK_URL}"
+        tar xJf openwrt-sdk-*.tar.xz -C ../
+        mv -f "${GITHUB_WORKSPACE}" ../src
+        mv ../openwrt-sdk-* "${GITHUB_WORKSPACE}"
         
-    - name: Download Packages
+    - name: Prepare targets
+      env:
+        REPF: ${{ github.repository }}
+        PKGN: ${{ 'trojan-go' }}
       run: |
-        cd ~/sdk
-        # trojan-go
-        git clone https://github.com/frainzy1477/trojan-go-for-openwrt package/trojan-go
-        ./scripts/feeds update -a
-        ./scripts/feeds install golang c-ares libev libopenssl libsodium mbedtls pcre libncursesw6
+        REP=$(basename "${REPF}")
+        mv -vf ../src "package/${PKGN}"
         
-    - name: Compile
+    - name: Load custom configuration
       env:
         DEBIAN_FRONTEND: noninteractive
+        CONFIG_FILE: '.config'
+        REPF: ${{ github.repository }}
+        PKGN: ${{ 'trojan-go' }}
       run: |
-        cd ~/sdk
+        REP=$(basename "${REPF}")
+        ./scripts/feeds update -a
+        ./scripts/feeds install golang c-ares libev libopenssl libsodium mbedtls pcre libncursesw6
+        [ -e "package/${PKGN}/${CONFIG_FILE}" ] && mv "${CONFIG}" .config
         make defconfig
-        make package/trojan-go/compile -j$(nproc) V=s
-    - name: Upload - push to artifact file
-      uses: actions/upload-artifact@v1
-      with:
-        name: ${{ format('{0}.{1}.{2}', github.workflow, github.actor, github.event_name) }}
-        path: ../../../sdk/bin/packages
+           
+    - name: Compile Package
+      env:
+        DEBIAN_FRONTEND: noninteractive
+        PKGN: ${{ 'trojan-go' }}
+      run: |
+        make package/${PKGN}/compile -j$(nproc) V=s
+        mkdir ../bin
+        find bin/ -type f -name "*${PKGN}*" | xargs -t -i mv -vf {} ../bin
         
-    #- name: Release
-    #  uses: softprops/action-gh-release@v1
-    #  with:
-    #      draft: true
-    #      name: ${{ env.TAG_NAME }}
-    #      tag_name: ${{ env.TAG_NAME }}
-    #      files: ../../sdk/bin/packages/../base/*
-    #  env:
-    #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
- 
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+          draft: true
+          name: ${{ env.TAG_NAME }}
+          tag_name: ${{ env.TAG_NAME }}
+          files: ../bin/*.ipk
+      env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
