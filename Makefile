@@ -9,9 +9,17 @@ PKG_NAME:=trojan-go
 PKG_VERSION:=0.9.1.0
 PKG_RELEASE:=$(SUBTARGET)
 
+#PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+#PKG_SOURCE_URL:=https://codeload.github.com/frainzy1477/$(PKG_NAME)/tar.gz/v$(PKG_VERSION)?
+#PKG_HASH:=skip
+
+
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://github.com/frainzy1477/trojan-go.git
+PKG_MIRROR_HASH:=skip
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_VERSION:=ac880996805d131d7f662e4d4f577fd6b7679a35
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://codeload.github.com/frainzy1477/$(PKG_NAME)/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=skip
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_TROJAN_GO_COMPRESS_GOPROXY \
