@@ -71,8 +71,8 @@ GEOSITE_FILE:=geosite.dat
 
 
 ifeq ($(CONFIG_TROJAN_GO_COMPRESS_GOPROXY),y)
-export GO111MODULE=on
-export GOPROXY=https://goproxy.io
+	export GO111MODULE=on
+	export GOPROXY=https://goproxy.io
 endif
 
 
