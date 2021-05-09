@@ -51,7 +51,6 @@ define Package/$(PKG_NAME)
 endef
 
 define Package/trojan-go-geodata
-  $(call Package/$(PKG_NAME))
   TITLE+= (geodata files)
   DEPENDS:=trojan-go
   PKGARCH:=all
