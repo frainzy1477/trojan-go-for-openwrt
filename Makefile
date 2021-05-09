@@ -44,17 +44,6 @@ define Package/$(PKG_NAME)
 	TITLE:=Trojan-go.
 endef
 
-define Package/trojan-go-geodata
-  TITLE+= (geodata files)
-  DEPENDS:=trojan-go
-  PKGARCH:=all
-endef
-
-define Package/$(PKG_NAME)-geodata/description
-  $(call Package/$(PKG_NAME)/description)
-
-  This includes GEO datas used for trojan-go core.
-endef
 
 define Package/$(PKG_NAME)/description
   Trojan-Go - An unidentifiable mechanism that helps you bypass GFW
@@ -76,37 +65,16 @@ endmenu
 endef
 
 GEOIP_VER:=202105082211
-GEOIP_FILE:=geoip.dat.$(GEOIP_VER)
-
-define Download/geoip
-  URL:=https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$(GEOIP_VER)/
-  URL_FILE:=geoip.dat
-  FILE:=$(GEOIP_FILE)
-  HASH:=skip
-endef
-
+GEOIP_FILE:=geoip.dat
 GEOSITE_VER:=202105082211
-GEOSITE_FILE:=geosite.dat.$(GEOSITE_VER)
+GEOSITE_FILE:=geosite.dat
 
-define Download/geosite
-  URL:=https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$(GEOSITE_VER)/
-  URL_FILE:=geosite.dat
-  FILE:=$(GEOSITE_FILE)
-  HASH:=skip
-endef
 
 ifeq ($(CONFIG_TROJAN_GO_COMPRESS_GOPROXY),y)
 export GO111MODULE=on
 export GOPROXY=https://goproxy.io
 endif
 
-define Build/Prepare
-	$(call Build/Prepare/Default)
-ifneq ($(CONFIG_PACKAGE_xray-geodata),)
-	$(call Download,geoip)
-	$(call Download,geosite)
-endif
-endef
 
 define Build/Compile
 	$(call GoPackage/Build/Compile)
@@ -116,16 +84,13 @@ ifeq ($(CONFIG_TROJAN_GO_COMPRESS_UPX),y)
 	mkdir -p $(BUILD_DIR)/upx
 	xz -d -c $(DL_DIR)/upx-3.96.tar.xz | tar -x -C $(BUILD_DIR)/upx
 	chmod +x $(BUILD_DIR)/upx/upx-3.96-amd64_linux/upx
-	$(BUILD_DIR)/upx/upx-3.96-amd64_linux/upx --lzma --best $(GO_PKG_BUILD_BIN_DIR)/$(PKG_NAME)	
+	$(BUILD_DIR)/upx/upx-3.96-amd64_linux/upx --lzma --best $(GO_PKG_BUILD_BIN_DIR)/$(PKG_NAME)
+	wget -q https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$(GEOIP_VER)/$(GEOIP_FILE)  -O 2>&1 >1 $(GO_PKG_BUILD_BIN_DIR)/$(GEOIP_FILE)
+	wget -q https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$(GEOSITE_VER)/$(GEOSITE_FILE)  -O 2>&1 >1 $(GO_PKG_BUILD_BIN_DIR)/$(GEOSITE_FILE)
 endif
 endef
 
-define Package/$(PKG_NAME)-geodata/install
-	$(INSTALL_DIR) $(1)/usr/bin/
-	$(INSTALL_DATA) $(DL_DIR)/$(GEOIP_FILE) $(1)/usr/bin/geoip.dat
-	$(INSTALL_DATA) $(DL_DIR)/$(GEOSITE_FILE) $(1)/usr/bin/geosite.dat
-endef
 
 $(eval $(call GoBinPackage,$(PKG_NAME)))
 $(eval $(call BuildPackage,$(PKG_NAME)))
-$(eval $(call BuildPackage,$(PKG_NAME)-geodata))
+#$(eval $(call BuildPackage,$(PKG_NAME)-geodata))
