@@ -2,17 +2,11 @@
 #
 # This is free software, licensed under the GNU General Public License v3.
 #
-
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=trojan-go
 PKG_VERSION:=0.10.1
 PKG_RELEASE:=$(SUBTARGET)
-
-#PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-#PKG_SOURCE_URL:=https://codeload.github.com/frainzy1477/$(PKG_NAME)/tar.gz/v$(PKG_VERSION)?
-#PKG_HASH:=skip
-
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/frainzy1477/trojan-go.git
@@ -56,18 +50,17 @@ define Package/trojan-go-geodata
   PKGARCH:=all
 endef
 
-
 define Package/$(PKG_NAME)-geodata/description
   $(call Package/$(PKG_NAME)/description)
 
   This includes GEO datas used for trojan-go core.
 endef
 
-
 define Package/$(PKG_NAME)/description
   Trojan-Go - An unidentifiable mechanism that helps you bypass GFW
 endef
 
+define Package/$(PKG_NAME)/config
 menu "Configuration"
 	depends on PACKAGE_$(PKG_NAME)
 
@@ -80,7 +73,6 @@ config TROJAN_GO_COMPRESS_UPX
 	default y
 
 endmenu
-
 endef
 
 GEOIP_VER:=202105082211
