@@ -41,6 +41,7 @@ GO_PKG_LDFLAGS_X:= \
 include $(INCLUDE_DIR)/package.mk
 include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
 
+
 define Package/$(PKG_NAME)
 	SECTION:=luci
 	CATEGORY:=LuCI
@@ -49,7 +50,24 @@ define Package/$(PKG_NAME)
 	TITLE:=Trojan-go.
 endef
 
-define Package/$(PKG_NAME)/config
+define Package/trojan-go-geodata
+  $(call Package/$(PKG_NAME))
+  TITLE+= (geodata files)
+  DEPENDS:=trojan-go
+  PKGARCH:=all
+endef
+
+
+define Package/$(PKG_NAME)-geodata/description
+  $(call Package/$(PKG_NAME)/description)
+
+  This includes GEO datas used for trojan-go core.
+endef
+
+
+define Package/$(PKG_NAME)/description
+  Trojan-Go - An unidentifiable mechanism that helps you bypass GFW
+endef
 
 menu "Configuration"
 	depends on PACKAGE_$(PKG_NAME)
@@ -66,10 +84,38 @@ endmenu
 
 endef
 
+GEOIP_VER:=202105082211
+GEOIP_FILE:=geoip.dat.$(GEOIP_VER)
+
+define Download/geoip
+  URL:=https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$(GEOIP_VER)/
+  URL_FILE:=geoip.dat
+  FILE:=$(GEOIP_FILE)
+  HASH:=skip
+endef
+
+GEOSITE_VER:=202105082211
+GEOSITE_FILE:=geosite.dat.$(GEOSITE_VER)
+
+define Download/geosite
+  URL:=https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$(GEOSITE_VER)/
+  URL_FILE:=geosite.dat
+  FILE:=$(GEOSITE_FILE)
+  HASH:=skip
+endef
+
 ifeq ($(CONFIG_TROJAN_GO_COMPRESS_GOPROXY),y)
 export GO111MODULE=on
 export GOPROXY=https://goproxy.io
 endif
+
+define Build/Prepare
+	$(call Build/Prepare/Default)
+ifneq ($(CONFIG_PACKAGE_xray-geodata),)
+	$(call Download,geoip)
+	$(call Download,geosite)
+endif
+endef
 
 define Build/Compile
 	$(call GoPackage/Build/Compile)
@@ -83,5 +129,12 @@ ifeq ($(CONFIG_TROJAN_GO_COMPRESS_UPX),y)
 endif
 endef
 
+define Package/$(PKG_NAME)-geodata/install
+	$(INSTALL_DIR) $(1)/usr/bin/
+	$(INSTALL_DATA) $(DL_DIR)/$(GEOIP_FILE) $(1)/usr/bin/geoip.dat
+	$(INSTALL_DATA) $(DL_DIR)/$(GEOSITE_FILE) $(1)/usr/bin/geosite.dat
+endef
+
 $(eval $(call GoBinPackage,$(PKG_NAME)))
 $(eval $(call BuildPackage,$(PKG_NAME)))
+$(eval $(call BuildPackage,$(PKG_NAME)-geodata))
