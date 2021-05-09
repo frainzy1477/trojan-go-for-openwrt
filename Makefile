@@ -6,7 +6,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=trojan-go
-PKG_VERSION:=v0.10.0
+PKG_VERSION:=0.10.0
 PKG_RELEASE:=$(SUBTARGET)
 
 #PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
